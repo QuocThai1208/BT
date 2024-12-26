@@ -3,6 +3,7 @@ import uuid
 from calendar import month
 from datetime import datetime
 from flask import render_template, request, jsonify
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.sql.functions import random
 
 from app import app
@@ -229,7 +230,6 @@ def pay():
                   guest_name=user.name,
                   is_paid=False)
         db.session.add(o)
-        db.session.commit()
 
         for c in cart.values():
             d = OrderDetail(book_id=c['id'], order_id=id, quantity=c['quantity'], unit_price=c['price'])
@@ -275,7 +275,7 @@ def list_payment():
 def confirm_payment(order_id):
     try:
         # Tìm đơn hàng theo ID và đảm bảo thuộc về current_user
-        order = Order.query.filter_by(id=order_id, customer_id=current_user.id).first()
+        order = utils.get_order_by_id(order_id)
 
         payment_id = request.form.get('payment_id')
 
